@@ -1,3 +1,3 @@
 ## Welcome to the Introduction to R Workshop
 
-You can look at the presentation [here](https://github.com/eugeniopaglino/RWorkshopBase/blob/main/RWorkshopBase.html).
+You can look at the presentation [here](https://htmlpreview.github.io/?https://github.com/eugeniopaglino/RWorkshopBase/blob/main/RWorkshopBase.html).
