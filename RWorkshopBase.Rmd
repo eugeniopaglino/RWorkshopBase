@@ -1,8 +1,27 @@
 ---
 title: "R for Non-R Users"
 author: "Eugenio Paglino"
-output: revealjs::revealjs_presentation
+output: 
+  revealjs::revealjs_presentation:
+    transition: slide
+    theme: simple
+    center: false
 ---
+
+<style type="text/css">
+  .reveal p {
+    text-align: left;
+    font-size: 0.7em;
+  }
+  .reveal ul {
+    display: block;
+    font-size: 0.7em;
+  }
+  .reveal ol {
+    display: block;
+    font-size: 0.7em;
+  }  
+</style>
 
 ```{r setup, echo=F}
 
