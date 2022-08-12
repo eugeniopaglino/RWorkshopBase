@@ -1,0 +1,608 @@
+---
+title: "R for Non-R Users"
+author: "Eugenio Paglino"
+output: ioslides_presentation
+---
+
+```{r setup, echo=F}
+
+options(scipen = 999)
+
+knitr::opts_chunk$set(echo = T,
+                      message = F,
+                      warning = F,
+                      fig.align = 'center',
+                      fig.height = 3,
+                      fig.width = 5)
+
+```
+
+```{r, echo=F}
+
+library(kableExtra)
+library(bench)
+library(tidyverse)
+
+```
+
+## What Is a Program?
+
+In its essence, a program is a sequence of instructions that specifies how to perform a computation. 
+
+Computations can be of different types:
+
+- computing the mean of a set of numbers
+- replacing the substring 'pre' with 'post' in a list of strings
+- producing a graphic representation of some data
+
+---
+
+Every programming language has its own quirks but in general, every program (even the more complex ones) are a combination of a few basic instructions:
+
+- **input**: Get data from the keyboard, a file, the network, or some other device.
+- **output**: Display data on the screen, save it in a file, send it over the network, etc.
+- **math**: Perform basic mathematical operations like addition and multiplication.
+- **conditional execution**: Check for certain conditions and run the appropriate code.
+- **repetition**: Perform some action repeatedly, usually with some variation.
+
+## Coding Basics
+
+The key building blocks of most languages are objects. In R, objects may be variables, arrays of numbers, character strings, functions, or more general structures built from such components. All R statements where you create objects, assignment statements, have the same form:
+
+```{r, eval=F}
+object_name <- value
+```
+
+Where `<-` is the assignment operator. This statement tells R that an object called `object_name` should be created and assigned the value `value`. A specific example could be:
+
+```{r}
+ourFirstString <- 'Hello World'
+```
+
+---
+
+### Naming Conventions
+
+It is a good practice to use descriptive names and a consistent style. People have their own taste. Some commonly used alternatives are:
+
+```{r,eval=F}
+iMostlyUseCamelCase
+other_people_use_snake_case
+some.people.use.periods
+And_aFew.People_RENOUNCEconvention # Not recommended
+```
+
+You can inspect an object by typing its name:
+
+```{r}
+ourFirstString
+```
+
+---
+
+### Types
+
+Objects in R can be of different types (modes). The basic types of objects are:
+
+- `numeric` (`integer` or `double`)
+- `logical`
+- `character`
+
+A series of objects of the same type can be grouped into a `vector`. If you instead need to group objects of different types, you'll need to use `lists`. Dataframes, if you have head of them, are essentially a list of lists.
+
+---
+
+Objects can be easily converted from one type to another (when it makes sense to do so). Here is an example:
+
+```{r}
+(z <- 0:9) # Parentheses will make R print the object
+```
+
+```{r}
+(digits <- as.character(z))
+```
+
+A further coercion reconstructs the numerical vector:
+
+```{r}
+(d <- as.integer(digits))
+```
+
+---
+
+### Functions
+
+A special and very useful type of object is a *function*. As a general concept, a function takes some objects as inputs or parameters and uses them to complete an action or produce another object. For example, the `seq()` function takes three main arguments and returns the sequence of values from `from` to `to` in steps of length `by`.
+
+```{r}
+seq(from=1, to=5, by=1)
+```
+
+---
+
+You can define your own functions in the same way you create an object:
+
+```{r,eval=F}
+myFunction <- function(arg1 = val1, arg2 = val2, ...) {
+  do_something(arg1,arg2)
+}
+```
+
+For example, we can create a function that takes a vector of numbers and adds 2 to each of its elements:
+
+```{r}
+add2 <- function(numbers) {
+  return(numbers + 2)
+}
+
+add2(1:4)
+```
+
+---
+
+### Mathematical Operations
+
+In our last example, you've seen how R can perform basic mathematical operations. Mathematical operators mostly work as expected:
+
+```{r,eval=F}
+ + # Addition 
+ - # Subtraction 
+ * # Multiplication 
+ / # Division 
+ ^ # Exponentiation 
+ %% # Modulus
+```
+In addition to mathematical operators, R also has logical operators:
+
+```{r,eval=F}
+ & or && # AND 
+ | or ||# OR 
+ ! # NOT
+```
+
+---
+
+### Conditional Execution
+
+Often you need to perform one operation or another based on a given condition. This is what it is known as conditional execution. In R, you can implement it as follows:
+
+```{r,eval=F}
+if (someCondition) {
+  
+  executeThis()
+  
+} else {
+  
+  executeThat()
+}
+```
+
+The expression or object that replaces `someCondition` must evaluate to either `TRUE` or `FALSE`.
+
+---
+
+Conditional expressions can also be chained:
+
+```{r,eval=F}
+if (someCondition) {
+  executeThis()
+} else if (someOtherCondition) {
+  executeThat()
+} else {
+  executeSomethingElse()
+}
+```
+
+or nested:
+
+```{r,eval=F}
+if (someCondition) {
+  executeThis()
+} else {
+  if (someOtherCondition) {
+    executeThat()
+  }
+}
+```
+
+---
+
+### Loops and Repetition
+
+Sometimes you need to repeat the same operation more than once with some variation. Here is an example:
+
+```{r}
+countdown <- function(n){
+  while (n > 0) {
+    print(n)
+    n <- n - 1
+  }
+  print('Blastoff!')
+}
+```
+
+The `while` statement check if a condition is `TRUE` (here `n>0`) and keeps executing the code in curly brackets when (if ever) it turns `FALSE`. Make sure that you are not setting up an infinite loop!
+
+---
+
+A second alternative when you know exactly how many iterations you need to run is the `for` statement. Here is how we wuld rewrite the `countdown` function with a `for` loop.
+
+```{r}
+countdown <- function(n){
+  for (i in n:1) {
+    print(i)
+  }
+  print('Blastoff!')
+}
+```
+
+---
+
+### A Primer on Code Performance
+
+You might be tempted to use `for` loops to repeat an operation on all elements of a set of objects. That's because in R (and many other languages) iterations in a `for` loops are executed sequentially even when the could be executed in parallel.
+
+R makes is relatively easy to transform certain `for` loops into their *vectorized* equivalent (i.e. implemented in such a way that multiple iterations are run simultaneously). Suppose we want to compute the exponential of log of `x`*0.3 + 1 for all the elements of a vector. We could define a function to perform such operation on a single number:
+
+```{r}
+arbitraryOperation <- function(number) {
+  trasformedNumber <- log(number*0.3 + 1)
+  trasformedNumber <- exp(trasformedNumber)
+  return(trasformedNumber)
+}
+```
+
+---
+
+We could then apply this function to the elements of our vector with a `for` loop as follows:
+
+```{r}
+n <- 100
+numbers <- seq(0,2,length.out=n)
+
+result <- vector(mode = "list", length = n)
+for(i in 1:n){
+    result[[i]] = arbitraryOperation(numbers[i])
+}
+result <- as.numeric(result)
+
+```
+
+Alternatively, we could write a more compact expression using the `sapply` functional. This function applies a given function to all the elements of a vector and returns another vector. 
+
+```{r, eval=F}
+sapply(numbers,arbitraryOperation)
+```
+
+---
+
+Because R is a smart language, many basic functions are automatically vectorized when applied over vectors. For example, the `exp`, the `+`, the `*`, and the `log` operations can all be applied directly to an entire vector (and our `arbitraryOperation` function inherits this property). Let us now compare the performance of these three alternatives.
+
+```{r, echo=F}
+mark(
+  {
+    result <- vector(mode = "list", length = n)
+    for(i in 1:n){
+      result[[i]] = arbitraryOperation(numbers[i])
+    }
+    result <- as.numeric(result)
+  },
+  sapply(numbers,arbitraryOperation),
+  arbitraryOperation(numbers),
+  iterations=100) %>%
+  select(expression,median,mem_alloc) %>%
+  mutate(expression=c('For Loop','Sapply','Vectorized')) %>%
+  kable(col.names = c('Implementation','Median Execution Time','Memory Allocation')) %>%
+  kable_styling()
+  
+```
+
+With a vector of size 100, the `sapply` solution is about 30 times faster than the `for` loop and the vectorized version is about 29 times faster than the `sapply` solution. In general, if a vectorized version is available you should use it.
+
+---
+
+As a general note, you might not always care about performance. If you are not writing computationally intensive code, readability should be given a higher priority.
+
+At the same time, R is not a fast language so if performance is key to your project, you might have to look [elsewhere](https://adv-r.hadley.nz/perf-improve.html#vectorise).
+
+## A Brief Journey into the `tidyverse`
+
+What we explored so far is part of the core R language. Indeed, except for the functionalities needed to time the code, we did not import any package. 
+
+A package is a collection of functions pulled together by someone in order to perform a given set of operations. in R, packages are installed and loaded with the commands:
+
+```{r,eval=F}
+install.packages('packageName')
+library(packageName)
+```
+
+Once a package is loaded, you can use its functions as if they were R core functions. If you want help wiht a function, you can type `?functionName` in our console to access its documentation.
+
+---
+
+There are many specialized packages in R, to build visualizations, to work with geographical data, to perform text analysis, etc.. Among R packages, the [`tidyverse`](https://www.tidyverse.org) collection stands out as coherent framework to perform all the most common data science operations, from reading the data, to cleaning it, to visualizing it.
+
+Today, I'll be illustrating the following packages:
+
+- `readr`: read and write data
+- `dplyr` and `tidyr`: data wrangling
+- `ggplot`: visualization
+- `rmarkdown` and `knitr`: communicate
+
+---
+
+### `readr` Reading and Writing Data
+
+`.csv` is by far the most common format for rectangular data. You can read `.csv` files into R as follows:
+
+```{r,eval=F}
+read_csv(pathToFile)
+```
+
+You can select which columns to read with the `col_select` option, specify column types with the `col_types` options, and specify a non standard delimiter with the `delim` option. 
+
+`read_csv` is highly customizable and offers many useful options to take care of parsing problems. `readr` also offers the `read_fwf` function to read fixed width files (relatively common).
+
+---
+
+### `tidyr` and `dplyr` Transforming Data
+
+Often, the data available to you is in a different format from the one you need. The `tidyverse` generally expects a dataset to follow these three principles:
+
+There are three interrelated rules which make a dataset tidy:
+
+1. Each variable must have its own column.
+2. Each observation must have its own row.
+3. Each value must have its own cell.
+
+---
+
+Consider the following table:
+
+```{r, echo=F}
+table2
+```
+This table violates rule 1 because two variables, `cases` and `population` share the same column.
+
+---
+
+We can easily convert the table to a tidy format with the following code:
+
+```{r}
+table2 %>%
+  pivot_wider(names_from = 'type', values_from = 'count')
+```
+
+---
+
+Imagine now that the data came as two separate tables:
+
+```{r}
+table4a # cases
+table4b # population
+```
+
+---
+
+Even in this case, we can easily create a tidy table. First, we need to collapse the different years into a unique variable:
+
+```{r,results='hide'}
+table4a %>%
+  pivot_longer(`1999`:`2000`,
+               names_to = 'year',values_to = 'cases')
+table4b %>%
+  pivot_longer(`1999`:`2000`,
+               names_to = 'year',values_to = 'population')
+```
+
+---
+
+and then we join them
+
+```{r}
+table4 <- table4a %>%
+  pivot_longer(`1999`:`2000`,
+               names_to = 'year',values_to = 'cases')
+table4b %>% 
+  pivot_longer(`1999`:`2000`,
+               names_to = 'year',values_to = 'population') %>%
+  left_join(table4,by=c('country','year'))
+```
+
+---
+
+Other useful functions to transform datasets are:
+
+- `separate`: to pull apart one column into multiple columns, by splitting wherever a separator character appears.
+- `unite`: to combine multiple columns into a single column.
+- `complete`: takes a set of columns, and finds all unique combinations. It then ensures the original dataset contains all those values, filling in where necessary.
+- `fill`: takes a set of columns where you want missing values to be replaced by the most recent non-missing value.
+
+---
+
+In one of the previous examples, I used the `left_join` function to combine two datasets through a common *key*. This is a very common operation and is implemented by the `*_join` family of functions.
+
+- `inner_join`: keeps only entries found in both databases
+- `left_join`: keeps only entries found in left database
+- `right_join`: keeps only entries found in the right database
+- `outer_join`: keeps any entry found in one of the two databases
+
+You can specify which keys should be used for the join operation with the `by` parameter.
+
+```{r,eval=F}
+table1 %>%
+  *_join(table2,by=c('var1a'='var2a','var1b'='var)) # This is the most general syntax
+```
+
+---
+
+You'll often want to add, remove, reorder, or modify variables in a dataset. This is the job of `dplyr`.
+
+- You can add new variables with the `mutate` function (`transmute` removes exisiting variables).
+- You can select which variables you want to keep (or remove) wih the `select` function.
+- You can reorder variables with the `relocate` function.
+- You can sort a dataset with the `arrange` function.
+
+---
+
+Here is an example:
+
+```{r}
+table1 %>%
+  mutate(rate = cases/population) %>% # we add a new variables
+  relocate(year) %>% # we move year to the first position
+  select(country,year,rate) %>% # we keep only year, country, and rate
+  arrange(year,country) # we sort by year and country
+```
+
+---
+
+The syntax of `select` is used in many other function throughout the `tidyverse`. It is thus worth it to explore it a little bit more:
+
+- `var1:var2`: Selects all variables between var1 and var 2
+- `var1,var3,...,var5`: Selects individual variables var1, var3, ..., var5
+- `starts_with('someString')`: Selets all variables starting with someString
+- `ends_with('someString')`: Selets all variables ending with someString
+
+The `-` operator in front of any selection (i.e. `select(-selection)`) excludes the selected variables and keeps the remaining ones
+
+---
+
+### Building Visualization with `ggplot2`
+
+`ggplot2` is a general purpose library for visualizing data. The key principle of `ggplot2` is the idea of building up a graphic from multiple layers of data. You can learn more [here](http://vita.had.co.nz/papers/layered-grammar.pdf) but it's probably best to start with an example. We will be using the following classic dataset:
+
+```{r}
+head(iris)
+```
+
+---
+
+We wish to plot sepal length against sepal width.
+
+```{r}
+ggplot(data=iris)+ # Notice that we use + and not the pipe %>%
+  geom_point(mapping=aes(x=Sepal.Length,y=Sepal.Width))
+```
+We pipe the data to `ggplot` to set up the plot. Then we add our first layer `geom_point` and tell `ggplot2` that `Sepal.Length` should be mapped to the x-axis and `Sepal.Width` should be mapped to the y-axis.
+
+---
+
+Congratulations! This is your first graph. Suppose we want to change point shape based on the species.
+
+```{r}
+ggplot(data=iris) + # Notice that we use + and not the pipe %>%
+  geom_point(mapping=aes(x=Sepal.Length,y=Sepal.Width,
+                         shape=Species))
+```
+
+We just need to map the `Species` variable to the shape aesthetic.
+
+---
+
+If we felt that the shape alone is not enought to help the viewer separate points by species, we could add color:
+
+```{r}
+plot <- ggplot(data=iris,
+               mapping=aes(x=Sepal.Length,y=Sepal.Width) )+
+          geom_point(mapping=aes(shape=Species,color=Species)) 
+plot
+```
+
+---
+
+Suppose we want to focus on a specific portion of the graph:
+
+```{r}
+plot +
+  coord_cartesian(xlim=c(6,7),ylim=c(2.5,3.5))
+```
+
+---
+
+We can change the axis labels and add a title:
+
+```{r}
+plot +
+  labs(x='Sepal Length',
+       y='Sepal Width',
+       title='The Relationship of Sepal Width and Lenght')
+```
+
+---
+
+We could also add a regression line:
+
+```{r} 
+plot +
+  geom_smooth(method = 'lm', se = F,color='gray') 
+```
+
+---
+
+Maybe it would be better to have each species in a separate graph:
+
+```{r, fig.width=7}
+plot +
+  facet_wrap(~Species)
+```
+
+---
+
+We are not confined to points. Here is a histogram of sepal length.
+
+```{r}
+ggplot(iris) +
+  geom_histogram(mapping=aes(x=Sepal.Length),
+                 bins = 10,color='black',fill='white')
+```
+
+---
+
+There are many different geometries you can use:
+
+- Lines: `geom_line`
+- Boxplots: `geom_boxplot`
+- Densities: `geom_density`
+- Maps: `geom_map`
+- Error Bars: `geom_errorbar`
+- Uncertainty Intervals: `geom_ribbon`
+
+and many more.
+
+---
+
+You can customize almost every aspect of a plot: axes, labels, grid lines, legend, orientation, size, palettes. However, `ggplot2` also offers a set of themes that modify several aspects of a figure at once:
+
+```{r} 
+plot +
+  theme_minimal()
+```
+
+---
+
+```{r} 
+plot +
+  theme_bw()
+```
+
+---
+
+```{r} 
+plot +
+  theme_classic()
+```
+
+and more are available through the `ggthemes` package.
+
+---
+
+### Communicating Your Results with RMarkdown
+
+You might have noticed how this presentation combined formatted text, R code and plots. This presentation uses RMarkdown, a system within RStudio that lets you write code through a notebook interface and create reproducible documents.
+
+If you clone the repository where I uploaded this presentation's material you'll be able to recreate this document with a simple click of the "Knit" button in RStudio.
+
+You have many different output types you can choose from: html, markdown, doc, pdf (through LaTex), and others.
+
+You can learn more about RMarkdown functionalities [here](https://rmarkdown.rstudio.com/lesson-1.html).
