@@ -1,7 +1,7 @@
 ---
 title: "R for Non-R Users"
 author: "Eugenio Paglino"
-output: ioslides_presentation
+output: revealjs::revealjs_presentation
 ---
 
 ```{r setup, echo=F}
