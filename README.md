@@ -1,4 +1,6 @@
-Introduction to R and the `tidyverse` workshop for Demography and Sociology students at the University of Pennsylvania. You can see the slides [here](https://htmlpreview.github.io/?https://github.com/eugeniopaglino/RWorkshopBase/blob/main/RWorkshopBase.html)
+# Introduction to R Workshop
+
+Introduction to R and the `tidyverse` workshop for Demography and Sociology students at the University of Pennsylvania. You can see the slides [here](https://htmlpreview.github.io/?https://github.com/eugeniopaglino/RWorkshopBase/blob/main/RWorkshopBase.html).
 
 If you want to dowload all of this repository's code to your own machine, you should open a Terminal sessions (if on Mac) or a Command Prompt (if on Windows) and type the following commands:
 

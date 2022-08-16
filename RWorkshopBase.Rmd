@@ -44,7 +44,7 @@ library(tidyverse)
 
 ```
 
-## What Is a Program?
+### What Is a Program?
 
 In its essence, a program is a sequence of instructions that specifies how to perform a computation. 
 
@@ -443,7 +443,7 @@ Let us pause for a moment. In the code on the previous slides I've been frequent
 
 This pipe operator is implemented by the `magrittr` package and imported with the `tidyverse`. It passes the output of one operator or function to the next one as its first argument. Most `tidyverse` functions work very natural with the pipe but other functions work as well with the following syntax:
 
-```{r}
+```{r,eval=F}
 firstObject %>%
   someFunction(someArg=.,otherArg1=...,otherArg2=...)
 ```
