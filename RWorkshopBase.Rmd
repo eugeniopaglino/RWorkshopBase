@@ -439,6 +439,17 @@ Other useful functions to transform datasets are:
 
 ---
 
+Let us pause for a moment. In the code on the previous slides I've been frequently using the `%>%` operator. How does this work?
+
+This pipe operator is implemented by the `magrittr` package and imported with the `tidyverse`. It passes the output of one operator or function to the next one as its first argument. Most `tidyverse` functions work very natural with the pipe but other functions work as well with the following syntax:
+
+```{r}
+firstObject %>%
+  someFunction(someArg=.,otherArg1=...,otherArg2=...)
+```
+
+---
+
 In one of the previous examples, I used the `left_join` function to combine two datasets through a common *key*. This is a very common operation and is implemented by the `*_join` family of functions.
 
 - `inner_join`: keeps only entries found in both databases
