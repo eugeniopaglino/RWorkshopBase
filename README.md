@@ -5,9 +5,16 @@ If you want to dowload all of this repository's code to your own machine, you sh
 ```
 # Travel to the folder where you want to dowload the repository. 
 # The repository will create its own folder so you should not create one.
+
 cd pathToFolder
 
+# Your path should look something like:
+
+/Users/username/Documents/myGitHubProjects/ # Mac users
+C:\Documents\myGitHubProjects\ # Windows users
+
 # Download a repository hosted on GitHub to our machine
+
 git clone https://github.com/eugeniopaglino/RWorkshopBase.git
 
 # This works for any repository, you just need to replace `owner/repo` 
