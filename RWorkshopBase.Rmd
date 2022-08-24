@@ -6,6 +6,8 @@ output:
     transition: slide
     theme: simple
     center: false
+    reveal_options:
+      slideNumber: true
 ---
 
 <style type="text/css">
@@ -56,7 +58,7 @@ Computations can be of different types:
 
 ---
 
-Every programming language has its own quirks but in general, every program (even the more complex ones) are a combination of a few basic instructions:
+Every programming language has its own quirks but in general, every program (even the more complex ones) is a combination of a few basic instructions:
 
 - **input**: Get data from the keyboard, a file, the network, or some other device.
 - **output**: Display data on the screen, save it in a file, send it over the network, etc.
@@ -99,15 +101,63 @@ ourFirstString
 
 ---
 
+*Exercise*
+
+Try to create a new object called `myFirstObject` and assign it the value 5.4:
+
+```{r,eval=F}
+myFirstObject <- 
+```
+
+Then inspect it and check that everything worked as expected:
+
+```{r,eval=F}
+ 
+```
+---
+
+*Solution*
+
+```{r}
+myFirstObject <- 5.4
+myFirstObject
+```
+
+---
+
 ### Types
 
 Objects in R can be of different types (modes). The basic types of objects are:
 
-- `numeric` (`integer` or `double`)
-- `logical`
-- `character`
+- `numeric`, `integer` (no decimals) or `double` (with decimals)
+- `logical` (TRUE or FALSE values)
+- `character` (strings)
 
-A series of objects of the same type can be grouped into a `vector`. If you instead need to group objects of different types, you'll need to use `lists`. Dataframes, if you have head of them, are essentially a list of lists.
+You can inspect an object's type by typing:
+
+```{r}
+typeof(myFirstObject)
+```
+
+---
+
+A series of objects of the same type can be grouped into a `vector`. Vectors in R are defined as follows:
+
+```{r}
+myFirstVector <- c(1,2,5,7)
+```
+
+If you try to create a vector with objects of different types, R will try to coerce them to a common type:
+
+```{r}
+(illegalVector <- c(1,'3',5,FALSE))
+```
+
+In that case you'll need to use a list:
+
+```{r}
+myFirstList <- list(1,'3',5,FALSE)
+```
 
 ---
 
@@ -137,6 +187,8 @@ A special and very useful type of object is a *function*. As a general concept, 
 seq(from=1, to=5, by=1)
 ```
 
+This works because `seq` belongs to the core of the R language.
+
 ---
 
 You can define your own functions in the same way you create an object:
@@ -151,12 +203,11 @@ For example, we can create a function that takes a vector of numbers and adds 2 
 
 ```{r}
 add2 <- function(numbers) {
-  return(numbers + 2)
+  return(numbers + 2) # The return statement tells R to output the result
 }
 
 add2(1:4)
 ```
-
 ---
 
 ### Mathematical Operations
@@ -181,17 +232,52 @@ In addition to mathematical operators, R also has logical operators:
 
 ---
 
+*Exercise*
+
+Try to define a function that takes the following vector of numbers as input and returns a vector in which each element has been divided by 2 and raised to the 2nd power:
+
+```{r,eval=F}
+numbers <- 1:5
+
+divideBy2AndSquare <- function(numbers) {
+   # write your code here
+}
+```
+
+Now check that it produces the desired result:
+
+```{r,eval=F}
+divideBy2AndSquare(numbers)
+```
+
+---
+
+*Solution*
+
+```{r}
+numbers <- 1:5
+
+divideBy2AndSquare <- function(numbers) {
+  return((numbers/2)^2)
+}
+```
+
+Now check that it produces the desired result:
+
+```{r}
+divideBy2AndSquare(numbers)
+```
+
+---
+
 ### Conditional Execution
 
 Often you need to perform one operation or another based on a given condition. This is what it is known as conditional execution. In R, you can implement it as follows:
 
 ```{r,eval=F}
 if (someCondition) {
-  
   executeThis()
-  
 } else {
-  
   executeThat()
 }
 ```
@@ -226,6 +312,47 @@ if (someCondition) {
 
 ---
 
+*Exercise*
+
+Write a function that computed the square root of a number if the number is strictly positive and the square root of its absolute value if it is negative:
+
+```{r,eval=F}
+computeSquare <- function(number) {
+  if (someCondition) { # change the condition
+    # write your code here
+  } else {
+    # write your code here
+  }
+}
+```
+
+Now check that it produces the desired result:
+
+```{r,eval=F}
+computeSquare(4)
+computeSquare(-16)
+```
+---
+
+*Solution*
+
+```{r}
+computeSquare <- function(number) {
+  if (number > 0) {
+    return(sqrt(number))
+  } else {
+    return(sqrt(abs(number)))
+  }
+}
+```
+
+```{r}
+computeSquare(4)
+computeSquare(-16)
+```
+
+---
+
 ### Loops and Repetition
 
 Sometimes you need to repeat the same operation more than once with some variation. Here is an example:
@@ -238,6 +365,7 @@ countdown <- function(n){
   }
   print('Blastoff!')
 }
+countdown(3)
 ```
 
 The `while` statement check if a condition is `TRUE` (here `n>0`) and keeps executing the code in curly brackets when (if ever) it turns `FALSE`. Make sure that you are not setting up an infinite loop!
@@ -253,13 +381,14 @@ countdown <- function(n){
   }
   print('Blastoff!')
 }
+countdown(3)
 ```
 
 ---
 
 ### A Primer on Code Performance
 
-You might be tempted to use `for` loops to repeat an operation on all elements of a set of objects. That's because in R (and many other languages) iterations in a `for` loops are executed sequentially even when the could be executed in parallel.
+You might be tempted to use `for` loops to repeat an operation on all elements of a set. However, this will likely prove to be slow. That's because in R (and many other languages) iterations in a `for` loops are executed sequentially even when the could be executed in parallel.
 
 R makes is relatively easy to transform certain `for` loops into their *vectorized* equivalent (i.e. implemented in such a way that multiple iterations are run simultaneously). Suppose we want to compute the exponential of log of `x`*0.3 + 1 for all the elements of a vector. We could define a function to perform such operation on a single number:
 
@@ -326,7 +455,7 @@ At the same time, R is not a fast language so if performance is key to your proj
 
 ## A Brief Journey into the `tidyverse`
 
-What we explored so far is part of the core R language. Indeed, except for the functionalities needed to time the code, we did not import any package. 
+What we explored so far is part of the core R language. Indeed, except for the functions needed to time the code, we did not import any package. 
 
 A package is a collection of functions pulled together by someone in order to perform a given set of operations. in R, packages are installed and loaded with the commands:
 
@@ -335,7 +464,7 @@ install.packages('packageName')
 library(packageName)
 ```
 
-Once a package is loaded, you can use its functions as if they were R core functions. If you want help wiht a function, you can type `?functionName` in our console to access its documentation.
+Once a package is loaded, you can use its functions as if they were R core functions. If you want help with a function, you can type `?functionName` in our console to access its documentation.
 
 ---
 
@@ -358,9 +487,15 @@ Today, I'll be illustrating the following packages:
 read_csv(pathToFile)
 ```
 
-You can select which columns to read with the `col_select` option, specify column types with the `col_types` options, and specify a non standard delimiter with the `delim` option. 
+You can select which columns to read with the `col_select` option, specify column types with the `col_types` option, and specify a non standard delimiter with the `delim` option. 
 
 `read_csv` is highly customizable and offers many useful options to take care of parsing problems. `readr` also offers the `read_fwf` function to read fixed width files (relatively common).
+
+Once you have transformed the data you read and are satisfied with the result, you can write it to a file as follows:
+
+```{r,eval=F}
+write_csv(transformedData,pathToFile)
+```
 
 ---
 
@@ -439,9 +574,51 @@ Other useful functions to transform datasets are:
 
 ---
 
+*Exercise*
+
+Consider this table:
+
+```{r}
+table3
+```
+
+Separate the `rate` variable into a `cases` and a `population` variable. Recall that you can look up the documentation for a function by typing `?myFunction`.
+
+---
+
+*Exercise (Continued)*
+
+```{r,eval=F}
+table3Tidy <- table3 %>%
+  # Write your code here
+```
+
+And check if it worked:
+
+```{r,eval=F}
+table3Tidy
+```
+
+---
+
+*Solution*
+
+```{r}
+table3Tidy <- table3 %>%
+  separate(rate,into=c('cases','population'),sep='/')
+```
+
+And check if it worked:
+
+```{r}
+table3Tidy
+```
+
+---
+
 Let us pause for a moment. In the code on the previous slides I've been frequently using the `%>%` operator. How does this work?
 
-This pipe operator is implemented by the `magrittr` package and imported with the `tidyverse`. It passes the output of one operator or function to the next one as its first argument. Most `tidyverse` functions work very natural with the pipe but other functions work as well with the following syntax:
+This pipe operator is implemented by the `magrittr` package and imported with the `tidyverse`. It passes the output of one operator or function to the next one as its first argument. Most `tidyverse` functions work very naturally with the pipe but other functions work as well with the following syntax:
 
 ```{r,eval=F}
 firstObject %>%
@@ -461,15 +638,23 @@ You can specify which keys should be used for the join operation with the `by` p
 
 ```{r,eval=F}
 table1 %>%
-  *_join(table2,by=c('var1a'='var2a','var1b'='var)) # This is the most general syntax
+  *_join(table2,by=c('var1a'='var2a','var1b'='var2b')) 
+  # This is the most general syntax
 ```
+
+---
+
+Here is a graphic representation of what each `*_join` function does.
+
+![Join Operations](figures/join-venn.png)
 
 ---
 
 You'll often want to add, remove, reorder, or modify variables in a dataset. This is the job of `dplyr`.
 
 - You can add new variables with the `mutate` function (`transmute` removes exisiting variables).
-- You can select which variables you want to keep (or remove) wih the `select` function.
+- You can select which variables you want to keep (or remove) with the `select` function.
+- You can select which rows you want to keep with the `filter` function.
 - You can reorder variables with the `relocate` function.
 - You can sort a dataset with the `arrange` function.
 
@@ -498,12 +683,34 @@ The `-` operator in front of any selection (i.e. `select(-selection)`) excludes 
 
 ---
 
+*Exercise*
+
+Starting from `table1`, keep only rows for Afghanistan, add a new variable called `rate` equal to the number of cases for 100,000 individuals and remove the `cases` and `population` columns.
+
+```{r,eval=F}
+table1 %>%
+  # Write your code here
+```
+
+---
+
+*Solution*
+
+```{r}
+table1 %>%
+  filter(country == 'Afghanistan') %>%
+  mutate(rate = (cases/population)*100000) %>%
+  select(-c(cases,population))
+```
+
+---
+
 ### Building Visualization with `ggplot2`
 
 `ggplot2` is a general purpose library for visualizing data. The key principle of `ggplot2` is the idea of building up a graphic from multiple layers of data. You can learn more [here](http://vita.had.co.nz/papers/layered-grammar.pdf) but it's probably best to start with an example. We will be using the following classic dataset:
 
 ```{r}
-head(iris)
+head(iris) # Returns the first 5 elements
 ```
 
 ---
@@ -547,6 +754,8 @@ Suppose we want to focus on a specific portion of the graph:
 plot +
   coord_cartesian(xlim=c(6,7),ylim=c(2.5,3.5))
 ```
+
+`coord_cartesian` controls the coordinates and can zoom on a part of the plot.
 
 ---
 
@@ -627,9 +836,33 @@ and more are available through the `ggthemes` package.
 
 ---
 
+*Exercise*
+
+Using the `iris` dataset, create a new graph with a different box plot of `Sepal.Width` for each Species. Label the axes in an appropriate way. Use the theme you prefer.
+
+```{r,eval=F} 
+ggplot(data=iris) +
+  geom_*(mapping=aes(x=,y=)) +
+  labs() +
+  theme_*()
+```
+
+---
+
+*Solution*
+
+```{r} 
+ggplot(data=iris) +
+  geom_boxplot(mapping=aes(x=Species,y=Sepal.Width)) +
+  labs(y='Sepal Width') +
+  theme_bw()
+```
+
+---
+
 ### Communicating Your Results with RMarkdown
 
-You might have noticed how this presentation combined formatted text, R code and plots. This presentation uses RMarkdown, a system within RStudio that lets you write code through a notebook interface and create reproducible documents.
+You might have noticed how this presentation combines formatted text, R code and plots. This presentation uses RMarkdown, a system integrated in RStudio that lets you write code through a notebook interface and create reproducible documents.
 
 If you clone the repository where I uploaded this presentation's material you'll be able to recreate this document with a simple click of the "Knit" button in RStudio.
 
