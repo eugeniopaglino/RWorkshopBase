@@ -22,7 +22,11 @@ output:
   .reveal ol {
     display: block;
     font-size: 0.7em;
-  }  
+  } 
+  .reveal section img {
+    border: none;
+    box-shadow: none; 
+  }
 </style>
 
 ```{r setup, echo=F}
@@ -286,6 +290,19 @@ The expression or object that replaces `someCondition` must evaluate to either `
 
 ---
 
+Here is an example:
+
+```{r}
+season <- 'summer'
+if (season == 'summer') {
+  print('hot')
+} else {
+  print('cold')
+}
+```
+
+---
+
 Conditional expressions can also be chained:
 
 ```{r,eval=F}
@@ -384,78 +401,9 @@ countdown <- function(n){
 countdown(3)
 ```
 
----
-
-### A Primer on Code Performance
-
-You might be tempted to use `for` loops to repeat an operation on all elements of a set. However, this will likely prove to be slow. That's because in R (and many other languages) iterations in a `for` loops are executed sequentially even when the could be executed in parallel.
-
-R makes is relatively easy to transform certain `for` loops into their *vectorized* equivalent (i.e. implemented in such a way that multiple iterations are run simultaneously). Suppose we want to compute the exponential of log of `x`*0.3 + 1 for all the elements of a vector. We could define a function to perform such operation on a single number:
-
-```{r}
-arbitraryOperation <- function(number) {
-  trasformedNumber <- log(number*0.3 + 1)
-  trasformedNumber <- exp(trasformedNumber)
-  return(trasformedNumber)
-}
-```
-
----
-
-We could then apply this function to the elements of our vector with a `for` loop as follows:
-
-```{r}
-n <- 100
-numbers <- seq(0,2,length.out=n)
-
-result <- vector(mode = "list", length = n)
-for(i in 1:n){
-    result[[i]] = arbitraryOperation(numbers[i])
-}
-result <- as.numeric(result)
-
-```
-
-Alternatively, we could write a more compact expression using the `sapply` functional. This function applies a given function to all the elements of a vector and returns another vector. 
-
-```{r, eval=F}
-sapply(numbers,arbitraryOperation)
-```
-
----
-
-Because R is a smart language, many basic functions are automatically vectorized when applied over vectors. For example, the `exp`, the `+`, the `*`, and the `log` operations can all be applied directly to an entire vector (and our `arbitraryOperation` function inherits this property). Let us now compare the performance of these three alternatives.
-
-```{r, echo=F}
-mark(
-  {
-    result <- vector(mode = "list", length = n)
-    for(i in 1:n){
-      result[[i]] = arbitraryOperation(numbers[i])
-    }
-    result <- as.numeric(result)
-  },
-  sapply(numbers,arbitraryOperation),
-  arbitraryOperation(numbers),
-  iterations=100) %>%
-  select(expression,median,mem_alloc) %>%
-  mutate(expression=c('For Loop','Sapply','Vectorized')) %>%
-  kable(col.names = c('Implementation','Median Execution Time','Memory Allocation')) %>%
-  kable_styling()
-  
-```
-
-With a vector of size 100, the `sapply` solution is about 30 times faster than the `for` loop and the vectorized version is about 29 times faster than the `sapply` solution. In general, if a vectorized version is available you should use it.
-
----
-
-As a general note, you might not always care about performance. If you are not writing computationally intensive code, readability should be given a higher priority.
-
-At the same time, R is not a fast language so if performance is key to your project, you might have to look [elsewhere](https://adv-r.hadley.nz/perf-improve.html#vectorise).
-
 ## A Brief Journey into the `tidyverse`
 
-What we explored so far is part of the core R language. Indeed, except for the functions needed to time the code, we did not import any package. 
+What we explored so far is part of the core R language. Indeed, we did not import any package. 
 
 A package is a collection of functions pulled together by someone in order to perform a given set of operations. in R, packages are installed and loaded with the commands:
 
@@ -475,7 +423,7 @@ Today, I'll be illustrating the following packages:
 - `readr`: read and write data
 - `dplyr` and `tidyr`: data wrangling
 - `ggplot`: visualization
-- `rmarkdown` and `knitr`: communicate
+- `rmarkdown` and `knitr`: build smart documents
 
 ---
 
@@ -622,7 +570,7 @@ This pipe operator is implemented by the `magrittr` package and imported with th
 
 ```{r,eval=F}
 firstObject %>%
-  someFunction(someArg=.,otherArg1=...,otherArg2=...)
+  someFunction(someArg=.,otherArg1=arg1,otherArg2=arg2)
 ```
 
 ---
@@ -665,6 +613,7 @@ Here is an example:
 ```{r}
 table1 %>%
   mutate(rate = cases/population) %>% # we add a new variables
+  filter(population > 100000000) %>% # keep if pop > 100 million
   relocate(year) %>% # we move year to the first position
   select(country,year,rate) %>% # we keep only year, country, and rate
   arrange(year,country) # we sort by year and country
@@ -705,9 +654,92 @@ table1 %>%
 
 ---
 
+Within `mutate` we can perform some clever operations taking advantage of `dplyr` functions.
+
+```{r}
+table1 %>%
+  mutate(highPop = if_else(population > 100000000,T,F)) 
+```
+The `if_else` function select the first or the second input based on a condition. Here we create the `highPop` variable which equals to `FALSE` if the population is smaller than 100 million and `TRUE` otherwise.
+
+---
+
+When you have more than two cases, you should replace `if_else` with `case_when` instead of using nested clauses.
+
+```{r}
+table1 %>%
+  mutate(popSize = case_when(population > 1000000000 ~ 'Very Large',
+                             population > 100000000 ~ 'Large',
+                             TRUE ~ 'Medium or Small')) 
+```
+`case_when` works like an `if` statement. Conditions are evaluated sequentially so you should move from the most specific to the most general condition. If none of the cases is matched, a `NA` value is returned. You can, however, use `TRUE` as the last condition to catch all the remaining cases.
+
+---
+
+If you need to perform the same operation on multiple variables, you can use the `across` function:
+
+```{r}
+table1 %>%
+  mutate(across(cases:population, ~ .x/1000)) # divide by 1000
+```
+
+This may seem redundant here, but it becomes very useful when you have many variables.
+
+---
+
+### Grouped Data
+
+Often you'll need to work with groups within the data. For example, you might want to compute the maximum number of cases by country. Within `dplyr`, you can do that with the `group_by` function.
+
+```{r}
+table1 %>%
+  group_by(country) %>%
+  mutate(maxCases = max(cases)) %>%
+  ungroup() # we remove the grouping
+```
+
+---
+
+If you want to compute a summary of the data by group and then preserve only one observation for each group, you can replace the `mutate` function with `summarize`.
+
+```{r}
+table1 %>%
+  group_by(country) %>%
+  summarize(maxCases = max(cases)) %>%
+  ungroup() # we remove the grouping
+```
+
+Notice that summarize removes all the other variables.
+
+---
+
+*Exercise*
+
+Compute the average population by year and then filter the dataset so that only observations from the year with the highest average population. Then remove the intermediate variable you created to store the maximum population.
+
+```{r,eval=F}
+table1 %>%
+  # write your code here
+```
+
+---
+
+*Solution*
+
+```{r}
+table1 %>%
+  group_by(year) %>%
+  mutate(averagePop = mean(population)) %>%
+  ungroup() %>%
+  filter(averagePop == max(averagePop)) %>%
+  select(-averagePop)
+```
+
+---
+
 ### Building Visualization with `ggplot2`
 
-`ggplot2` is a general purpose library for visualizing data. The key principle of `ggplot2` is the idea of building up a graphic from multiple layers of data. You can learn more [here](http://vita.had.co.nz/papers/layered-grammar.pdf) but it's probably best to start with an example. We will be using the following classic dataset:
+`ggplot2` is a general purpose library for visualizing data. The key principle of `ggplot2` is the idea of building up a plot by combining different layers, each responsible for a specific function. You can learn more about `ggplot2` philosophy [here](http://vita.had.co.nz/papers/layered-grammar.pdf) but it's probably best to start with an example. We will be using the following classic dataset:
 
 ```{r}
 head(iris) # Returns the first 5 elements
@@ -721,7 +753,8 @@ We wish to plot sepal length against sepal width.
 ggplot(data=iris)+ # Notice that we use + and not the pipe %>%
   geom_point(mapping=aes(x=Sepal.Length,y=Sepal.Width))
 ```
-We pipe the data to `ggplot` to set up the plot. Then we add our first layer `geom_point` and tell `ggplot2` that `Sepal.Length` should be mapped to the x-axis and `Sepal.Width` should be mapped to the y-axis.
+
+We specify that the data we want to use is in the `iris` object. Then we add our first layer `geom_point` and tell `ggplot2` that `Sepal.Length` should be mapped to the x-axis and `Sepal.Width` should be mapped to the y-axis.
 
 ---
 
@@ -755,7 +788,7 @@ plot +
   coord_cartesian(xlim=c(6,7),ylim=c(2.5,3.5))
 ```
 
-`coord_cartesian` controls the coordinates and can zoom on a part of the plot.
+`coord_cartesian` controls the coordinates and can zoom on a part of the plot. Notice that we have stored our previous plot into the `plot` object and we are now adding more layers to it with the `+` operator.
 
 ---
 
@@ -785,6 +818,8 @@ Maybe it would be better to have each species in a separate graph:
 plot +
   facet_wrap(~Species)
 ```
+
+`facet_grid` allows to specify which variables should be used in the rows and which in the columns.
 
 ---
 
@@ -836,6 +871,13 @@ and more are available through the `ggthemes` package.
 
 ---
 
+You can combine different geometries and other elements to build very complex visualizations. Here are two examples from my own research.
+
+<img src="figures/absExcessPlot.png" alt="drawing" width="400"/>
+<img src="figures/excessMaps.png" alt="drawing" width="550"/>
+
+---
+
 *Exercise*
 
 Using the `iris` dataset, create a new graph with a different box plot of `Sepal.Width` for each Species. Label the axes in an appropriate way. Use the theme you prefer.
@@ -869,3 +911,72 @@ If you clone the repository where I uploaded this presentation's material you'll
 You have many different output types you can choose from: html, markdown, doc, pdf (through LaTex), and others.
 
 You can learn more about RMarkdown functionalities [here](https://rmarkdown.rstudio.com/lesson-1.html).
+
+---
+
+### A Primer on Code Performance
+
+You might be tempted to use `for` loops to repeat an operation on all elements of a set. However, this will likely prove to be slow. That's because in R (and many other languages) iterations in a `for` loops are executed sequentially even when the could be executed in parallel.
+
+R makes is relatively easy to transform certain `for` loops into their *vectorized* equivalent (i.e. implemented in such a way that multiple iterations are run simultaneously). Suppose we want to compute the exponential of log of `x`*0.3 + 1 for all the elements of a vector. We could define a function to perform such operation on a single number:
+
+```{r}
+arbitraryOperation <- function(number) {
+  trasformedNumber <- log(number*0.3 + 1)
+  trasformedNumber <- exp(trasformedNumber)
+  return(trasformedNumber)
+}
+```
+
+---
+
+We could then apply this function to the elements of our vector with a `for` loop as follows:
+
+```{r}
+n <- 100
+numbers <- seq(0,2,length.out=n)
+
+result <- vector(mode = "list", length = n)
+for(i in 1:n){
+    result[[i]] = arbitraryOperation(numbers[i])
+}
+result <- as.numeric(result)
+
+```
+
+Alternatively, we could write a more compact expression using the `sapply` functional. This function applies a given function to all the elements of a vector and returns another vector. 
+
+```{r, eval=F}
+sapply(numbers,arbitraryOperation)
+```
+
+---
+
+Because R is a smart language, many basic functions are automatically vectorized when applied over vectors. For example, the `exp`, the `+`, the `*`, and the `log` operations can all be applied directly to an entire vector (and our `arbitraryOperation` function inherits this property). Let us now compare the performance of these three alternatives.
+
+```{r, echo=F}
+mark(
+  {
+    result <- vector(mode = "list", length = n)
+    for(i in 1:n){
+      result[[i]] = arbitraryOperation(numbers[i])
+    }
+    result <- as.numeric(result)
+  },
+  sapply(numbers,arbitraryOperation),
+  arbitraryOperation(numbers),
+  iterations=100) %>%
+  select(expression,median,mem_alloc) %>%
+  mutate(expression=c('For Loop','Sapply','Vectorized')) %>%
+  kable(col.names = c('Implementation','Median Execution Time','Memory Allocation')) %>%
+  kable_styling()
+  
+```
+
+With a vector of size 100, the `sapply` solution is about 30 times faster than the `for` loop and the vectorized version is about 29 times faster than the `sapply` solution. In general, if a vectorized version is available you should use it.
+
+---
+
+As a general note, you might not always care about performance. If you are not writing computationally intensive code, readability should be given a higher priority.
+
+At the same time, R is not a fast language so if performance is key to your project, you might have to look [elsewhere](https://adv-r.hadley.nz/perf-improve.html#vectorise).
