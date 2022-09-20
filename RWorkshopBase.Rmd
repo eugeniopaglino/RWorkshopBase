@@ -412,7 +412,7 @@ install.packages('packageName')
 library(packageName)
 ```
 
-Once a package is loaded, you can use its functions as if they were R core functions. If you want help with a function, you can type `?functionName` in our console to access its documentation.
+Once a package is loaded, you can use its functions as if they were R core functions. If you want help with a function, you can type `?functionName` in your console to access its documentation.
 
 ---
 
@@ -502,13 +502,13 @@ table4b %>%
 and then we join them
 
 ```{r}
-table4 <- table4a %>%
+table4aTidy <- table4a %>%
   pivot_longer(`1999`:`2000`,
                names_to = 'year',values_to = 'cases')
 table4b %>% 
   pivot_longer(`1999`:`2000`,
                names_to = 'year',values_to = 'population') %>%
-  left_join(table4,by=c('country','year'))
+  left_join(table4aTidy,by=c('country','year'))
 ```
 
 ---
@@ -715,7 +715,7 @@ Notice that summarize removes all the other variables.
 
 *Exercise*
 
-Compute the average population by year and then filter the dataset so that only observations from the year with the highest average population. Then remove the intermediate variable you created to store the maximum population.
+Compute the average population by year and then filter the dataset so that it only contains observations from the year with the highest average population. Then remove the intermediate variable you created to store the maximum population.
 
 ```{r,eval=F}
 table1 %>%
